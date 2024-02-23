@@ -23,18 +23,75 @@
 #     this function terminates the program with error code 30
 # ==============================================================================
 write_matrix:
-
     # Prologue
+    addi sp, sp, -28
+    sw ra, 0(sp)
+    sw s0, 4(sp)
+    sw s1, 8(sp)
+    sw s2, 12(sp)
+    sw s3, 16(sp)
+    sw a2, 20(sp)
+    sw a3, 24(sp)
 
+    mv s0, a0
+    mv s1, a1
 
+open_file:
+    # mv a0, s0
+    li a1, 1
+    jal fopen
+    bge a0, zero, write_num_row
+    li a0, 27
+    j exit
 
+write_num_row:
+    mv s2, a0 # file descripter
+    addi a1, sp, 20
+    li a2, 1
+    li a3, 4
+    jal fwrite
+    li t0, 1
+    beq a0, t0, write_num_col
+    li a0, 30
+    j exit
 
+write_num_col:
+    mv a0, s2
+    addi a1, sp, 24
+    li a2, 1
+    li a3, 4
+    jal fwrite
+    li t0, 1
+    beq a0, t0, write_data
+    li a0, 30
+    j exit
 
+write_data:
+    mv a0, s2
+    mv a1, s1
+    lw t0, 20(sp)
+    lw t1, 24(sp)
+    mul s3, t0, t1
+    mv a2, s3
+    li a3, 4
+    jal fwrite
+    beq a0, s3, close_file
+    li a0, 30
+    j exit
 
+close_file:
+    mv a0, s2
+    jal fclose
+    beq a0, zero, return
+    li a0, 28
+    j exit
 
-
-
+return:
     # Epilogue
-
-
+    lw s3, 16(sp)
+    lw s2, 12(sp)
+    lw s1, 8(sp)
+    lw s0, 4(sp)
+    lw ra, 0(sp)
+    addi sp, sp, 28
     jr ra
